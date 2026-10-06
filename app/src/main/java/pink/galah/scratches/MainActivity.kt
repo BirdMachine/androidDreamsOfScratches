@@ -1,5 +1,6 @@
 package pink.galah.scratches
 import android.graphics.RuntimeShader
+import android.graphics.RenderEffect as AndroidRenderEffect
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.border
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.withFrameNanos
@@ -28,11 +30,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 
 class MainActivity:ComponentActivity(){override fun onCreate(b:Bundle?){super.onCreate(b);setContent{ScratchApp()}}}
 data class Specimen(val name:String,val glyph:String,val source:String)
+private const val WARP="""uniform shader content; uniform float2 resolution; uniform float time; uniform float amount;
+half4 main(float2 p){float2 uv=p/resolution;float2 q=uv-.5;float r=length(q);float a=atan(q.y,q.x);float wob=sin(a*7.0+time*2.1)*.012*amount+sin(r*32.0-time*3.0)*.007*amount;float2 d=normalize(q+float2(.0001))*wob*resolution;float ca=.003*amount*resolution.x;half4 g=content.eval(p+d);half rr=content.eval(p+d+float2(ca,0)).r;half bb=content.eval(p+d-float2(ca,0)).b;float edge=smoothstep(.46,.34,r);return half4(rr,g.g,bb,g.a)*half(.82+.18*edge);}"""
 private const val H="""uniform float2 resolution; uniform float time; uniform float2 touch; uniform float intensity; uniform float2 nodeA; uniform float2 nodeB; uniform float2 nodeC;
 float hash(float2 p){return fract(sin(dot(p,float2(127.1,311.7)))*43758.5453);}
 float noise(float2 p){float2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(hash(i),hash(i+float2(1,0)),f.x),mix(hash(i+float2(0,1)),hash(i+float2(1,1)),f.x),f.y);}
@@ -58,7 +63,7 @@ Specimen("SDF","◇",H+"""half4 main(float2 p){float2 uv=(p-.5*resolution)/resol
   Column(Modifier.fillMaxSize().systemBarsPadding().padding(14.dp),verticalArrangement=Arrangement.SpaceBetween){
    Column{Row(verticalAlignment=Alignment.CenterVertically){Text("SCRATCH",fontSize=25.sp);Spacer(Modifier.width(9.dp));Text(if(labMode)"THE UI IS THE SPECIMEN" else "UI MATERIAL LAB",fontSize=11.sp,color=Color.White.copy(.62f));Spacer(Modifier.weight(1f));TextButton(onClick={running=!running}){Text(if(running)"PAUSE" else "PLAY")}}
     LazyRow(horizontalArrangement=Arrangement.spacedBy(7.dp)){items(specimens){s->FilterChip(selected=s==selected,onClick={selected=s},label={Text(s.glyph+" "+s.name)})}}}
-   Column{AnimatedVisibility(controls){Surface(color=Color.Black.copy(.50f),shape=RoundedCornerShape(24.dp)){Column(Modifier.padding(16.dp)){Text(selected.glyph+" "+selected.name.uppercase()+" / UNIFORM BENCH",fontSize=12.sp);Spacer(Modifier.height(8.dp));Text("INTENSITY  "+"%.2f".format(intensity),fontSize=11.sp,color=Color.White.copy(.7f));Slider(value=intensity,onValueChange={intensity=it},valueRange=0f..2f);Row(verticalAlignment=Alignment.CenterVertically){Text("TIME ×"+"%.1f".format(speed),fontSize=10.sp,modifier=Modifier.width(72.dp));Slider(value=speed,onValueChange={speed=it},valueRange=.1f..3f,modifier=Modifier.weight(1f));Text("ZOOM ×"+"%.1f".format(scale),fontSize=10.sp,modifier=Modifier.padding(start=8.dp))};TortureTest()}}}
+   Column{AnimatedVisibility(controls){Surface(color=Color.Black.copy(.50f),shape=RoundedCornerShape(24.dp)){Column(Modifier.padding(16.dp)){Text(selected.glyph+" "+selected.name.uppercase()+" / UNIFORM BENCH",fontSize=12.sp);Spacer(Modifier.height(8.dp));Text("INTENSITY  "+"%.2f".format(intensity),fontSize=11.sp,color=Color.White.copy(.7f));Slider(value=intensity,onValueChange={intensity=it},valueRange=0f..2f);Row(verticalAlignment=Alignment.CenterVertically){Text("TIME ×"+"%.1f".format(speed),fontSize=10.sp,modifier=Modifier.width(72.dp));Slider(value=speed,onValueChange={speed=it},valueRange=.1f..3f,modifier=Modifier.weight(1f));Text("ZOOM ×"+"%.1f".format(scale),fontSize=10.sp,modifier=Modifier.padding(start=8.dp))};WarpedInput(time,intensity);TortureTest()}}}
     TextButton(onClick={controls=!controls},modifier=Modifier.align(Alignment.End)){Text(if(controls)"HIDE BENCH ↓" else "SHOW BENCH ↑")}}
   }
  }}
@@ -77,4 +82,14 @@ Specimen("SDF","◇",H+"""half4 main(float2 p){float2 uv=(p-.5*resolution)/resol
 }
 @Composable private fun GooNode(label:String,pos:Offset,onDrag:(Offset)->Unit){
  Box(Modifier.offset{androidx.compose.ui.unit.IntOffset((pos.x-110).toInt(),(pos.y-110).toInt())}.size(74.dp).clip(RoundedCornerShape(50)).background(Color.White.copy(.13f)).pointerInput(label){detectDragGestures{change,drag->change.consume();onDrag(drag)}},contentAlignment=Alignment.Center){Text(label,fontSize=11.sp,color=Color.White)}
+}
+
+@Composable private fun WarpedInput(time:Float,intensity:Float){
+ var value by remember{mutableStateOf("TYPE INTO THE WARP")}
+ val shader=remember{RuntimeShader(WARP)}
+ shader.setFloatUniform("resolution",900f,150f);shader.setFloatUniform("time",time);shader.setFloatUniform("amount",intensity)
+ val effect=remember(shader){AndroidRenderEffect.createRuntimeShaderEffect(shader,"content").asComposeRenderEffect()}
+ Box(Modifier.fillMaxWidth().padding(vertical=8.dp).height(54.dp).graphicsLayer{renderEffect=effect}.border(1.dp,Color.White.copy(.35f),RoundedCornerShape(18.dp)).clip(RoundedCornerShape(18.dp)).background(Color.White.copy(.09f)),contentAlignment=Alignment.CenterStart){
+  BasicTextField(value=value,onValueChange={value=it},singleLine=true,textStyle=TextStyle(color=Color.White,fontSize=16.sp),modifier=Modifier.fillMaxWidth().padding(horizontal=18.dp))
+ }
 }
