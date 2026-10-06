@@ -38,6 +38,10 @@ class MainActivity:ComponentActivity(){override fun onCreate(b:Bundle?){super.on
 data class Specimen(val name:String,val glyph:String,val source:String)
 private const val WARP="""uniform shader content; uniform float2 resolution; uniform float time; uniform float amount;
 half4 main(float2 p){float2 uv=p/resolution;float2 q=uv-.5;float r=length(q);float a=atan(q.y,q.x);float wob=sin(a*7.0+time*2.1)*.012*amount+sin(r*32.0-time*3.0)*.007*amount;float2 d=normalize(q+float2(.0001))*wob*resolution;float ca=.003*amount*resolution.x;half4 g=content.eval(p+d);half rr=content.eval(p+d+float2(ca,0)).r;half bb=content.eval(p+d-float2(ca,0)).b;float edge=smoothstep(.46,.34,r);return half4(rr,g.g,bb,g.a)*half(.82+.18*edge);}"""
+private const val GEL="""uniform shader content; uniform float2 resolution; uniform float time; uniform float amount; uniform float press;
+half4 main(float2 p){float2 uv=p/resolution;float2 q=uv-.5;float r=length(q/float2(1.0,.58));float bulge=exp(-r*r*5.0)*(.05+.06*press)*amount;float2 wob=float2(sin(uv.y*17.0+time*2.0),cos(uv.x*13.0-time*1.6))*.008*amount;float2 src=(uv+wob+normalize(q+float2(.001))*bulge)*resolution;half4 c=content.eval(src);float rim=exp(-abs(r-.48)*38.0);return half4(c.rgb+half3(.12,.03,.18)*half(rim),c.a);}"""
+private const val PRISM="""uniform shader content; uniform float2 resolution; uniform float time; uniform float amount; uniform float press;
+half4 main(float2 p){float2 uv=p/resolution;float facet=floor((uv.x+uv.y*.7)*9.0)/9.0;float2 d=float2(sin(facet*31.0+time),cos(facet*23.0-time))*(3.0+8.0*press)*amount;half4 g=content.eval(p+d);half r=content.eval(p+d*1.8).r;half b=content.eval(p-d*1.4).b;return half4(r,g.g,b,g.a);}"""
 private const val H="""uniform float2 resolution; uniform float time; uniform float2 touch; uniform float intensity; uniform float2 nodeA; uniform float2 nodeB; uniform float2 nodeC;
 float hash(float2 p){return fract(sin(dot(p,float2(127.1,311.7)))*43758.5453);}
 float noise(float2 p){float2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(hash(i),hash(i+float2(1,0)),f.x),mix(hash(i+float2(0,1)),hash(i+float2(1,1)),f.x),f.y);}
@@ -63,7 +67,7 @@ Specimen("SDF","◇",H+"""half4 main(float2 p){float2 uv=(p-.5*resolution)/resol
   Column(Modifier.fillMaxSize().systemBarsPadding().padding(14.dp),verticalArrangement=Arrangement.SpaceBetween){
    Column{Row(verticalAlignment=Alignment.CenterVertically){Text("SCRATCH",fontSize=25.sp);Spacer(Modifier.width(9.dp));Text(if(labMode)"THE UI IS THE SPECIMEN" else "UI MATERIAL LAB",fontSize=11.sp,color=Color.White.copy(.62f));Spacer(Modifier.weight(1f));TextButton(onClick={running=!running}){Text(if(running)"PAUSE" else "PLAY")}}
     LazyRow(horizontalArrangement=Arrangement.spacedBy(7.dp)){items(specimens){s->FilterChip(selected=s==selected,onClick={selected=s},label={Text(s.glyph+" "+s.name)})}}}
-   Column{AnimatedVisibility(controls){Surface(color=Color.Black.copy(.50f),shape=RoundedCornerShape(24.dp)){Column(Modifier.padding(16.dp)){Text(selected.glyph+" "+selected.name.uppercase()+" / UNIFORM BENCH",fontSize=12.sp);Spacer(Modifier.height(8.dp));Text("INTENSITY  "+"%.2f".format(intensity),fontSize=11.sp,color=Color.White.copy(.7f));Slider(value=intensity,onValueChange={intensity=it},valueRange=0f..2f);Row(verticalAlignment=Alignment.CenterVertically){Text("TIME ×"+"%.1f".format(speed),fontSize=10.sp,modifier=Modifier.width(72.dp));Slider(value=speed,onValueChange={speed=it},valueRange=.1f..3f,modifier=Modifier.weight(1f));Text("ZOOM ×"+"%.1f".format(scale),fontSize=10.sp,modifier=Modifier.padding(start=8.dp))};WarpedInput(time,intensity);TortureTest()}}}
+   Column{AnimatedVisibility(controls){Surface(color=Color.Black.copy(.50f),shape=RoundedCornerShape(24.dp)){Column(Modifier.padding(16.dp)){Text(selected.glyph+" "+selected.name.uppercase()+" / UNIFORM BENCH",fontSize=12.sp);Spacer(Modifier.height(8.dp));Text("INTENSITY  "+"%.2f".format(intensity),fontSize=11.sp,color=Color.White.copy(.7f));Slider(value=intensity,onValueChange={intensity=it},valueRange=0f..2f);Row(verticalAlignment=Alignment.CenterVertically){Text("TIME ×"+"%.1f".format(speed),fontSize=10.sp,modifier=Modifier.width(72.dp));Slider(value=speed,onValueChange={speed=it},valueRange=.1f..3f,modifier=Modifier.weight(1f));Text("ZOOM ×"+"%.1f".format(scale),fontSize=10.sp,modifier=Modifier.padding(start=8.dp))};WarpedInput(time,intensity);MutantInputs(time,intensity);TortureTest()}}}
     TextButton(onClick={controls=!controls},modifier=Modifier.align(Alignment.End)){Text(if(controls)"HIDE BENCH ↓" else "SHOW BENCH ↑")}}
   }
  }}
@@ -91,5 +95,23 @@ Specimen("SDF","◇",H+"""half4 main(float2 p){float2 uv=(p-.5*resolution)/resol
  val effect=remember(shader){AndroidRenderEffect.createRuntimeShaderEffect(shader,"content").asComposeRenderEffect()}
  Box(Modifier.fillMaxWidth().padding(vertical=8.dp).height(54.dp).graphicsLayer{renderEffect=effect}.border(1.dp,Color.White.copy(.35f),RoundedCornerShape(18.dp)).clip(RoundedCornerShape(18.dp)).background(Color.White.copy(.09f)),contentAlignment=Alignment.CenterStart){
   BasicTextField(value=value,onValueChange={value=it},singleLine=true,textStyle=TextStyle(color=Color.White,fontSize=16.sp),modifier=Modifier.fillMaxWidth().padding(horizontal=18.dp))
+ }
+}
+
+@Composable private fun MutantInputs(time:Float,intensity:Float){
+ var gel by remember{mutableStateOf("GELATINOUS TEXT")};var prism by remember{mutableStateOf("FACETED INPUT")};var pressed by remember{mutableFloatStateOf(0f)}
+ Column(Modifier.fillMaxWidth()){
+  Text("INPUT MUTATION / VISUAL ≠ HIT GEOMETRY",fontSize=9.sp,color=Color.White.copy(.55f))
+  MutantField(gel,{gel=it},GEL,time,intensity,pressed,"GEL",Modifier.pointerInput(Unit){detectTapGestures(onPress={pressed=1f;tryAwaitRelease();pressed=0f})})
+  MutantField(prism,{prism=it},PRISM,time,intensity,pressed,"PRISM",Modifier)
+ }
+}
+@Composable private fun MutantField(value:String,onValue:(String)->Unit,source:String,time:Float,amount:Float,press:Float,label:String,extra:Modifier){
+ val shader=remember(source){RuntimeShader(source)}
+ shader.setFloatUniform("resolution",900f,145f);shader.setFloatUniform("time",time);shader.setFloatUniform("amount",amount);shader.setFloatUniform("press",press)
+ val fx=remember(shader){AndroidRenderEffect.createRuntimeShaderEffect(shader,"content").asComposeRenderEffect()}
+ Box(Modifier.fillMaxWidth().height(48.dp).padding(top=5.dp).then(extra)){
+  BasicTextField(value=value,onValueChange=onValue,singleLine=true,textStyle=TextStyle(color=Color.White,fontSize=14.sp),modifier=Modifier.fillMaxSize().graphicsLayer{renderEffect=fx}.clip(RoundedCornerShape(22.dp)).background(Color.White.copy(.10f)).padding(horizontal=18.dp,vertical=12.dp))
+  Text(label,fontSize=8.sp,color=Color.White.copy(.42f),modifier=Modifier.align(Alignment.TopEnd).padding(8.dp))
  }
 }
