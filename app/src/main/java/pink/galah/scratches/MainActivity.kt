@@ -75,7 +75,7 @@ Specimen("SDF","◇",H+"""half4 main(float2 p){float2 uv=(p-.5*resolution)/resol
 @Composable private fun ShaderField(s:Specimen,time:Float,intensity:Float,tx:Float,ty:Float,scale:Float,nodeA:Offset,nodeB:Offset,nodeC:Offset,modifier:Modifier){
  val shader=remember(s){RuntimeShader(s.source)};Canvas(modifier){shader.setFloatUniform("resolution",size.width,size.height);shader.setFloatUniform("time",time);shader.setFloatUniform("touch",tx.coerceIn(0f,size.width),ty.coerceIn(0f,size.height));shader.setFloatUniform("nodeA",nodeA.x,nodeA.y);shader.setFloatUniform("nodeB",nodeB.x,nodeB.y);shader.setFloatUniform("nodeC",nodeC.x,nodeC.y);shader.setFloatUniform("intensity",intensity*scale);drawRect(ShaderBrush(shader))}
 }
-@Composable private fun TortureTest(){var text by remember{mutableStateOf("still an interface")};var on by remember{mutableStateOf(true)};Row(verticalAlignment=Alignment.CenterVertically){Switch(checked=on,onCheckedChange={on=it});Spacer(Modifier.width(10.dp));BasicTextField(value=text,onValueChange={text=it},singleLine=true,textStyle=TextStyle(color=Color.White,fontSize=14.sp),modifier=Modifier.weight(1f).clip(RoundedCornerShape(12.dp)).background(Color.White.copy(.10f)).padding(12.dp));Spacer(Modifier.width(8.dp));Button(onClick={text=if(text=="saved ✓")"again?!" else "saved ✓"}){Text("POKE")}}}
+@Composable fun TortureTest(){var text by remember{mutableStateOf("still an interface")};var on by remember{mutableStateOf(true)};Row(verticalAlignment=Alignment.CenterVertically){Switch(checked=on,onCheckedChange={on=it});Spacer(Modifier.width(10.dp));BasicTextField(value=text,onValueChange={text=it},singleLine=true,textStyle=TextStyle(color=Color.White,fontSize=14.sp),modifier=Modifier.weight(1f).clip(RoundedCornerShape(12.dp)).background(Color.White.copy(.10f)).padding(12.dp));Spacer(Modifier.width(8.dp));Button(onClick={text=if(text=="saved ✓")"again?!" else "saved ✓"}){Text("POKE")}}}
 
 @Composable private fun ExperimentalChrome(selected:Specimen,labMode:Boolean,toggle:()->Unit,a:Offset,b:Offset,c:Offset,dragA:(Offset)->Unit,dragB:(Offset)->Unit,dragC:(Offset)->Unit){
  if(!labMode)return
@@ -88,7 +88,7 @@ Specimen("SDF","◇",H+"""half4 main(float2 p){float2 uv=(p-.5*resolution)/resol
  Box(Modifier.offset{androidx.compose.ui.unit.IntOffset((pos.x-110).toInt(),(pos.y-110).toInt())}.size(74.dp).clip(RoundedCornerShape(50)).background(Color.White.copy(.13f)).pointerInput(label){detectDragGestures{change,drag->change.consume();onDrag(drag)}},contentAlignment=Alignment.Center){Text(label,fontSize=11.sp,color=Color.White)}
 }
 
-@Composable private fun WarpedInput(time:Float,intensity:Float){
+@Composable fun WarpedInput(time:Float,intensity:Float){
  var value by remember{mutableStateOf("TYPE INTO THE WARP")}
  val shader=remember{RuntimeShader(WARP)}
  shader.setFloatUniform("resolution",900f,150f);shader.setFloatUniform("time",time);shader.setFloatUniform("amount",intensity)
@@ -98,7 +98,7 @@ Specimen("SDF","◇",H+"""half4 main(float2 p){float2 uv=(p-.5*resolution)/resol
  }
 }
 
-@Composable private fun MutantInputs(time:Float,intensity:Float){
+@Composable fun MutantInputs(time:Float,intensity:Float){
  var gel by remember{mutableStateOf("GELATINOUS TEXT")};var prism by remember{mutableStateOf("FACETED INPUT")};var pressed by remember{mutableFloatStateOf(0f)}
  Column(Modifier.fillMaxWidth()){
   Text("INPUT MUTATION / VISUAL ≠ HIT GEOMETRY",fontSize=9.sp,color=Color.White.copy(.55f))
