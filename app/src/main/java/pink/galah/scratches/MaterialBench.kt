@@ -5,7 +5,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -35,6 +35,6 @@ import androidx.compose.ui.unit.sp
  Row(Modifier.fillMaxWidth().height(62.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(9.dp)){
   Canvas(Modifier.size(76.dp,48.dp).pointerInput(Unit){detectTapGestures{on=!on}}){val left=Offset(size.width*.28f,size.height*.5f);val right=Offset(size.width*.72f,size.height*.5f);val pulse=(kotlin.math.sin(time*3f)+1f)*.5f;drawCircle(Color.White.copy(if(on).18f else .07f),19f,left);drawCircle(Color.White.copy(if(on).48f else .15f),19f,right);if(on){val mid=Offset(size.width*.5f,size.height*.5f);drawCircle(Color.White.copy(.22f+.10f*pulse),22f,mid)}}
   androidx.compose.foundation.text.BasicTextField(value=text,onValueChange={text=it},singleLine=true,textStyle=androidx.compose.ui.text.TextStyle(color=Color.White,fontSize=14.sp),modifier=Modifier.weight(1f).background(Color.White.copy(.08f),RoundedCornerShape(50)).padding(13.dp))
-  Canvas(Modifier.size(82.dp,52.dp).pointerInput(Unit){detectTapGestures(onPress={poke=1f;tryAwaitRelease();poke=0f})}){val squash=1f-poke*.22f;drawOval(Color.White.copy(.30f+poke*.22f),topLeft=Offset(3f,size.height*(1f-squash)/2),size=androidx.compose.ui.geometry.Size(size.width-6f,size.height*squash));drawCircle(Color.White.copy(.18f),8f+poke*10f,Offset(size.width*.5f,size.height*.5f))}}
+  Canvas(Modifier.size(82.dp,52.dp).pointerInput(Unit){detectTapGestures(onPress={poke=1f;tryAwaitRelease();poke=0f})}){val squash=1f-poke*.22f;drawOval(Color.White.copy(.30f+poke*.22f),topLeft=Offset(3f,size.height*(1f-squash)/2),size=androidx.compose.ui.geometry.Size(size.width-6f,size.height*squash));drawCircle(Color.White.copy(.18f),8f+poke*10f,Offset(size.width*.5f,size.height*.5f))}
  }
 }
