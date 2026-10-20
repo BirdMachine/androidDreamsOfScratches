@@ -16,12 +16,12 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-@Composable fun MaterialBench(specimen:Specimen,intensity:Float,onIntensity:(Float)->Unit,speed:Float,onSpeed:(Float)->Unit,scale:Float,onScale:(Float)->Unit,time:Float,touchX:Float,touchY:Float,opaline:Boolean){
+@Composable fun MaterialBench(specimen:Specimen,intensity:Float,onIntensity:(Float)->Unit,speed:Float,onSpeed:(Float)->Unit,scale:Float,onScale:(Float)->Unit,time:Float,touchX:Float,touchY:Float,opaline:Boolean,lightX:Float,onLightX:(Float)->Unit,lightY:Float,onLightY:(Float)->Unit,film:Float,onFilm:(Float)->Unit,spectrum:Float,onSpectrum:(Float)->Unit){
  Column(Modifier.fillMaxWidth().background((if(opaline) Color.White.copy(.72f) else Color.Black.copy(.30f)),RoundedCornerShape(28.dp)).padding(14.dp)){
   Row(verticalAlignment=Alignment.CenterVertically){Text((if(opaline) "✧ OPALINE" else specimen.glyph+" "+specimen.name.uppercase()),fontSize=11.sp,color=if(opaline) Color(0xFF443A63) else Color.White);Spacer(Modifier.weight(1f));Text("MATERIAL BENCH",fontSize=9.sp,color=Color.White.copy(.45f))}
   LivingRail("INTENSITY",intensity,0f,2f,onIntensity,time)
   Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)){LivingRail("TIME",speed,.1f,3f,onSpeed,time,Modifier.weight(1f));LivingRail("ZOOM",scale,.35f,3f,onScale,time+2f,Modifier.weight(1f))}
-  if(opaline){Text("PEARLESCENT SURFACE  •  LIVING CONTROLS",fontSize=10.sp,color=Color(0xFF63547E))};NormalGlassField(time,intensity,touchX,touchY);WarpedInput(time,intensity);MutantInputs(time,intensity);CreatureControls(time)
+  if(opaline){Text("MOVABLE SUN  •  THIN FILM OPTICS",fontSize=10.sp,color=Color(0xFF63547E));Row(Modifier.fillMaxWidth()){LivingRail("LIGHT X",lightX,-2f,2f,onLightX,time,Modifier.weight(1f));LivingRail("LIGHT Y",lightY,-2f,2f,onLightY,time,Modifier.weight(1f))};Row(Modifier.fillMaxWidth()){LivingRail("FILM",film,5f,120f,onFilm,time,Modifier.weight(1f));LivingRail("SPECTRUM",spectrum,0f,3f,onSpectrum,time,Modifier.weight(1f))}};NormalGlassField(time,intensity,touchX,touchY);WarpedInput(time,intensity);MutantInputs(time,intensity);CreatureControls(time)
  }
 }
 @Composable private fun LivingRail(label:String,value:Float,min:Float,max:Float,onValue:(Float)->Unit,time:Float,modifier:Modifier=Modifier){
