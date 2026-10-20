@@ -29,14 +29,14 @@ half4 main(float2 p){
  float seam=exp(-abs(h-.55)*19.0);
  float3 normal=normalize(float3(-grad*.16,1.0));
  float lit=dot(normal,normalize(float3(-.5,-.65,1.0)));
- float ir=sin(h*38.0+relief*1.2+time*.12);
+ float facing=clamp(1.0-abs(normal.z),0.0,1.0);\n float illumination=clamp(lit*.65+.35,0.0,1.0);\n float iridescence=pow(facing,1.4)*illumination;\n float ir=sin(h*38.0+relief*1.2+time*.12);
  float ig=sin(h*38.0+relief*1.2+time*.12+2.094);
  float ib=sin(h*38.0+relief*1.2+time*.12+4.188);
  float3 pearl=float3(.94,.94,1.0)+float3(.07,.04,.08)*lit;
- pearl+=float3(ir,ig,ib)*(.07+.14*folds);
+ pearl+=float3(ir,ig,ib)*(.015+.36*iridescence);
  pearl-=float3(.08,.09,.13)*folds*.55;
  pearl+=float3(.12,.15,.19)*pow(max(lit,0.0),18.0);
- pearl+=float3(.20,.11,.16)*seam;
+ pearl+=float3(.20,.11,.16)*seam*iridescence;
  return half4(half3(clamp(pearl,0.0,1.0)),1.0);
 }
 """)
